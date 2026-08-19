@@ -1,0 +1,6 @@
+<%= turbo_stream.replace "share-panel-#{@note.id}" do %>
+  <%= render "notes/share_panel", note: @note %>
+<% end %>
+<%= turbo_stream.replace "share-btn-#{@note.id}" do %>
+  <%= render "notes/share_button", note: @note %>
+<% end %>

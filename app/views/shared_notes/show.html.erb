@@ -1,0 +1,19 @@
+<% content_for :title, t("titles.shared", title: @note.title.presence || t("js.untitled")) %>
+<% content_for :body_class, "auth-body" %>
+<% content_for :head do %>
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+<% end %>
+
+<article class="share-card">
+  <%= render "shared/wordmark" %>
+  <% if @note.title.present? %>
+    <h1><%= @note.title %></h1>
+  <% end %>
+  <% rest = @note.body_after_title.strip %>
+  <% if rest.present? %>
+    <div class="share-body"><%= simple_format(rest) %></div>
+  <% end %>
+  <p class="share-foot"><%= t("app.shared_from") %></p>
+  <%= render "shared/theme_switch" %>
+</article>
