@@ -11,14 +11,22 @@ bin/dev
 
 Open http://127.0.0.1:3000
 
+A `config/master.key` is created by `rails new` and is gitignored. Keep that file. If you cloned this repo and have no key:
+
+```bash
+rm -f config/credentials.yml.enc
+EDITOR=true bin/rails credentials:edit
+```
+
+That writes a new `config/master.key`. Do not commit it.
+
 ## VPS (Docker Compose)
 
 On the server, with Docker installed:
 
 ```bash
 cp .env.example .env
-# paste config/master.key into RAILS_MASTER_KEY
-# set KURA_HOST to your domain
+# set SECRET_KEY_BASE (see below) and KURA_HOST
 docker compose up -d --build
 ```
 
@@ -31,6 +39,30 @@ docker compose up -d
 ```
 
 `docker compose restart` does **not** reload `.env`. Use `up -d`.
+
+### Secret
+
+Pick **one**. You do not need both.
+
+**Compose (recommended on a VPS):**
+
+```bash
+openssl rand -hex 64
+```
+
+Put the output in `.env` as `SECRET_KEY_BASE`. No `master.key` required.
+
+**Rails credentials** (if you already have a key, or want `rails credentials:edit`):
+
+```bash
+rm -f config/credentials.yml.enc
+EDITOR=true bin/rails credentials:edit
+cat config/master.key
+```
+
+Put that value in `.env` as `RAILS_MASTER_KEY`. A random hex will not decrypt the `credentials.yml.enc` that ships in git — generate a new pair as above, or use `SECRET_KEY_BASE` instead.
+
+Losing the key does not lose notes. It only invalidates session cookies. Generate a new one and users sign in again.
 
 ### Users on the server
 
