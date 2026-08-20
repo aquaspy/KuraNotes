@@ -733,6 +733,8 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
   .app-shell.is-editing .col-folders,
   .app-shell.is-editing .fab { display: none; }
 
+  .flash { top: 3.6rem; }
+
   .confirm-dialog {
     margin-top: 22dvh;
     margin-bottom: auto;

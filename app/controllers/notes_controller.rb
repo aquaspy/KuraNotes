@@ -1,22 +1,20 @@
 class NotesController < ApplicationController
+  before_action :set_note, only: %i[index show update]
   before_action :load_notes, only: %i[index show update]
 
   def index
-    @note = current_user.notes.find_by(id: params[:id]) if params[:id]
   end
 
   def show
-    @note = current_user.notes.find(params[:id])
     render :index
   end
 
   def create
-    note = current_user.notes.create!(folder: folder_param)
+    note = Note.open_draft_for(current_user, folder: folder_param)
     redirect_to note_path(note, folder: params[:folder], q: params[:q])
   end
 
   def update
-    @note = current_user.notes.find(params[:id])
     @note.update(note_params)
     load_notes
 
@@ -73,7 +71,21 @@ class NotesController < ApplicationController
   end
 
   private
+    def set_note
+      return if params[:id].blank?
+
+      @note = if action_name == "index"
+        current_user.notes.find_by(id: params[:id])
+      else
+        current_user.notes.find(params[:id])
+      end
+    end
+
     def load_notes
+      abandoned = current_user.notes.blank_drafts
+      abandoned = abandoned.where.not(id: @note.id) if @note
+      abandoned.delete_all
+
       @query = params[:q].to_s.strip
       @folder = params[:folder]
       scope = current_user.notes.order(updated_at: :desc)

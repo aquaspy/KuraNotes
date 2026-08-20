@@ -3,6 +3,16 @@ class Note < ApplicationRecord
 
   before_validation :assign_title
 
+  scope :blank_drafts, -> { where(title: "", share_token: nil).where("TRIM(body) = ''") }
+
+  def self.open_draft_for(user, folder: "")
+    folder = folder.to_s
+    drafts = user.notes.blank_drafts.where(folder: folder)
+    draft = drafts.order(updated_at: :desc).first || user.notes.create!(folder: folder)
+    drafts.where.not(id: draft.id).delete_all
+    draft
+  end
+
   def inbox?
     folder.blank?
   end

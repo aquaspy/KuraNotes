@@ -208,6 +208,138 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "new note reuses an empty untitled draft in the same folder" do
+    login
+    post notes_path
+    first = @user.notes.last
+    post notes_path
+    assert_redirected_to note_path(first)
+    assert_equal 1, @user.notes.count
+  end
+
+  test "new note in another folder does not reuse an inbox draft" do
+    login
+    post notes_path
+    inbox = @user.notes.last
+    post notes_path, params: { folder: "work" }
+    assert_equal 2, @user.notes.count
+    assert_not_equal inbox.id, @user.notes.order(:id).last.id
+    assert_equal "work", @user.notes.order(:id).last.folder
+  end
+
+  test "new note opens a fresh one after writing" do
+    login
+    post notes_path
+    first = @user.notes.last
+    patch note_path(first), params: { note: { body: "Hello" } }
+    post notes_path
+    assert_equal 2, @user.notes.count
+  end
+
+  test "leaving an empty note discards the untitled draft" do
+    login
+    post notes_path
+    draft = @user.notes.last
+    get notes_path
+    assert_nil Note.find_by(id: draft.id)
+  end
+
+  test "opening another note discards an abandoned untitled draft" do
+    login
+    keep = @user.notes.create!(body: "Keep")
+    post notes_path
+    draft = @user.notes.where.not(id: keep.id).last
+    get note_path(keep)
+    assert_nil Note.find_by(id: draft.id)
+    assert Note.exists?(keep.id)
+  end
+
+  test "portuguese locale labels a blank title as Sem título" do
+    login
+    post notes_path
+    note = @user.notes.last
+    get note_path(note), headers: { "HTTP_ACCEPT_LANGUAGE" => "pt-BR,pt;q=0.9" }
+    assert_response :success
+    assert_includes response.body, "Sem título"
+    assert_not_includes response.body, "Untitled"
+  end
+
+  test "auto lock is off by default and can be toggled" do
+    login
+    assert_not @user.reload.auto_lock?
+
+    get root_path
+    assert_includes response.body, "Turn on auto lock"
+    assert_not_includes response.body, "Turn off auto lock"
+
+    travel 20.minutes do
+      get root_path
+      assert_response :success
+    end
+
+    post auto_lock_path
+    follow_redirect!
+    assert @user.reload.auto_lock?
+    assert_includes response.body, "Turn off auto lock"
+
+    travel 20.minutes do
+      get root_path
+      assert_redirected_to unlock_path
+    end
+  end
+
+  test "auto lock cannot be toggled while locked" do
+    login
+    post lock_path
+    post auto_lock_path
+    assert_redirected_to unlock_path
+    assert_not @user.reload.auto_lock?
+  end
+
+  test "logged in user can change password" do
+    login
+    get root_path
+    assert_includes response.body, "Change password"
+
+    get edit_password_path
+    assert_response :success
+    assert_includes response.body, "Current password"
+
+    patch password_path, params: { current_password: "wrong-password", password: "new-secret", password_confirmation: "new-secret" }
+    assert_response :unprocessable_entity
+    assert @user.reload.authenticate("secret-password")
+
+    patch password_path, params: { current_password: "secret-password", password: "new-secret", password_confirmation: "mismatch!" }
+    assert_response :unprocessable_entity
+    assert @user.reload.authenticate("secret-password")
+
+    patch password_path, params: { current_password: "secret-password", password: "new-secret", password_confirmation: "new-secret" }
+    assert_redirected_to root_path
+    follow_redirect!
+    assert_includes response.body, "Password changed."
+    assert @user.reload.authenticate("new-secret")
+    assert_not @user.authenticate("secret-password")
+
+    delete logout_path
+    post login_path, params: { email: @user.email, password: "secret-password" }
+    assert_response :unprocessable_entity
+    post login_path, params: { email: @user.email, password: "new-secret" }
+    assert_redirected_to root_path
+  end
+
+  test "change password requires a session" do
+    get edit_password_path
+    assert_redirected_to login_path
+  end
+
+  test "portuguese change password labels" do
+    login
+    get edit_password_path, headers: { "Accept-Language" => "pt-BR,pt;q=0.9" }
+    assert_includes response.body, "Mudar senha"
+    assert_includes response.body, "Senha atual"
+    assert_not_includes response.body, "Change password"
+  end
+
   test "import creates notes from an export file" do
     login
     file = Tempfile.new([ "notes", ".json" ])
