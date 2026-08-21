@@ -1,6 +1,6 @@
 <% if @note %>
   <div class="editor-wrap" data-controller="share" data-share-copied-value="<%= t("app.copied") %>">
-    <%= form_with model: @note, class: "editor-form", data: { controller: "autosave confirm", autosave_saved_value: t("js.saved"), autosave_saving_value: t("js.saving"), action: "input->autosave#queue turbo:submit-end->autosave#done" } do |form| %>
+    <%= form_with model: @note, class: "editor-form", data: { controller: "autosave confirm", autosave_saved_value: t("js.saved"), autosave_saving_value: t("js.saving"), autosave_offline_value: t("js.offline"), action: "input->autosave#queue turbo:submit-end->autosave#done" } do |form| %>
       <%= hidden_field_tag :folder, params[:folder] if params[:folder].present? %>
       <%= hidden_field_tag :q, params[:q] if params[:q].present? %>
       <header class="editor-bar">

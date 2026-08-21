@@ -356,6 +356,42 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     file&.close!
   end
 
+  test "import creates notes from a Notesnook text file" do
+    login
+    file = Tempfile.new([ "Brownie", ".txt" ])
+    file.write("Receita de Brownie\n\nChocolate e ovos")
+    file.rewind
+
+    assert_difference -> { @user.notes.count }, 1 do
+      post import_notes_path, params: { file: Rack::Test::UploadedFile.new(file.path, "text/plain") }
+    end
+    assert_includes @user.notes.last.body, "Receita de Brownie"
+    assert_includes @user.notes.last.body, "Chocolate e ovos"
+  ensure
+    file&.close!
+  end
+
+  test "import creates notes from a Standard Notes backup" do
+    login
+    payload = {
+      "version" => "004",
+      "items" => [
+        { "content_type" => "Note", "uuid" => "n1", "content" => { "title" => "Viagem", "text" => "Passaporte" } }
+      ]
+    }
+    file = Tempfile.new([ "Standard Notes Backup and Import File", ".txt" ])
+    file.write(payload.to_json)
+    file.rewind
+
+    assert_difference -> { @user.notes.count }, 1 do
+      post import_notes_path, params: { file: Rack::Test::UploadedFile.new(file.path, "text/plain") }
+    end
+    assert_includes @user.notes.last.body, "Viagem"
+    assert_includes @user.notes.last.body, "Passaporte"
+  ensure
+    file&.close!
+  end
+
   private
     def login
       post login_path, params: { email: @user.email, password: "secret-password" }

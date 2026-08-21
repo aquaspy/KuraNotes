@@ -7,7 +7,7 @@
     <label class="btn-io">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13.2V5.2M5 8.2 8 5.2 11 8.2M3 2.8h10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span><%= t("app.import") %></span>
-      <%= file_field_tag :file, accept: ".json,application/json", class: "sr-only", onchange: "this.form.requestSubmit()" %>
+      <%= file_field_tag :file, multiple: true, accept: ".json,.txt,.zip,application/json,text/plain,application/zip", class: "sr-only", onchange: "this.form.requestSubmit()" %>
     </label>
   <% end %>
 </div>

@@ -1,4 +1,4 @@
-const CACHE = "kuranotes-v6"
+const CACHE = "kuranotes-v7"
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(["/icon.svg"])))
@@ -12,6 +12,24 @@ self.addEventListener("activate", (event) => {
   self.clients.claim()
 })
 
+self.addEventListener("message", (event) => {
+  if (event.data === "logout") {
+    event.waitUntil(caches.delete(CACHE))
+  }
+})
+
+function cacheKey(request) {
+  const url = new URL(request.url)
+  if (/^\/notes\/\d+/.test(url.pathname)) {
+    url.searchParams.delete("q")
+    url.searchParams.delete("folder")
+  }
+  for (const [key, value] of [...url.searchParams.entries()]) {
+    if (value === "") url.searchParams.delete(key)
+  }
+  return url.pathname + url.search
+}
+
 self.addEventListener("fetch", (event) => {
   const request = event.request
   if (request.method !== "GET") return
@@ -19,18 +37,31 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
   if (url.pathname.startsWith("/s/")) return
+  if (url.pathname === "/cable" || url.pathname.startsWith("/cable/")) return
+  if (url.pathname === "/up" || url.pathname === "/service-worker") return
+  if (url.pathname === "/notes/export") return
+
+  const key = cacheKey(request)
 
   event.respondWith((async () => {
     try {
       const fresh = await fetch(request)
-      if (fresh.ok && request.method === "GET") {
+      if (fresh.ok) {
         const cache = await caches.open(CACHE)
-        cache.put(request, fresh.clone())
+        cache.put(key, fresh.clone())
       }
       return fresh
     } catch {
-      const cached = await caches.match(request)
-      return cached || caches.match("/")
+      const cache = await caches.open(CACHE)
+      const cached = await cache.match(key)
+      if (cached) return cached
+      if (request.mode === "navigate" || (request.headers.get("Accept") || "").includes("text/html")) {
+        return new Response(
+          `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KuraNotes</title><p>Offline. <a href="/">KuraNotes</a></p>`,
+          { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+        )
+      }
+      return Response.error()
     }
   })())
 })

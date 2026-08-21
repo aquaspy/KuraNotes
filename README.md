@@ -77,3 +77,17 @@ docker compose exec web bin/rails kura:password EMAIL=you@x.com PASSWORD='new-se
 Nothing is bundled. The app listens on `127.0.0.1:3000` and does not bind 80/443. Point your own Caddy or nginx at that address, set `FORCE_SSL=true` in `.env`, then `docker compose up -d`.
 
 Notes live in the `kura_data` volume (`storage/production.sqlite3`). Back that up.
+
+Offline, the PWA can reopen the home page and any note you already opened while online. Edits stay on screen and save when you are back online. Sign out wipes the cache so a second person on the same browser cannot read the previous user’s notes offline.
+
+### Import / export
+
+**Export** downloads a JSON file of every note on the account.
+
+**Import** accepts one or more files (or a zip). It recognizes:
+
+- KuraNotes JSON (the export above)
+- Notesnook **text** export (the unzipped `.txt` files, or the original `.zip`)
+- Standard Notes **unencrypted** backup (`Standard Notes Backup and Import File.txt`, or the zip it came in). Super notes are converted to plaintext. Tags become folders.
+
+Encrypted Standard Notes backups are skipped. Import does not replace existing notes; it adds them. Cap is 500 notes per import.

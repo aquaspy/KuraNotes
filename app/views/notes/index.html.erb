@@ -3,7 +3,8 @@
 <%= button_to "", lock_path, method: :post, id: "lock-now", class: "sr-only", tabindex: -1, form: { id: "lock-now-form" } %>
 <% if notice %><p class="flash flash-notice" role="status"><%= notice %></p><% end %>
 <% if alert %><p class="flash flash-alert" role="alert"><%= alert %></p><% end %>
-<div class="app-shell <%= "is-editing" if @note %>" data-controller="layout lock" data-lock-enabled-value="<%= current_user.auto_lock? %>">
+<div class="app-shell <%= "is-editing" if @note %>" data-controller="layout lock offline" data-lock-enabled-value="<%= current_user.auto_lock? %>">
+  <p class="offline-banner" data-offline-target="banner" hidden><%= t("app.offline") %></p>
 
   <header class="mobile-top">
     <%= render "shared/wordmark" %>

@@ -54,19 +54,13 @@ class NotesController < ApplicationController
   end
 
   def import
-    file = params[:file]
-    notes = parse_import(file)
     count = 0
-    notes.first(500).each do |row|
-      next unless row.is_a?(Hash)
-      body = row["body"].presence || row[:body].to_s
-      folder = (row["folder"] || row[:folder]).to_s
-      next if body.blank?
-      current_user.notes.create!(body: body, folder: folder)
+    NoteImporter.rows(params[:file]).each do |row|
+      current_user.notes.create!(body: row[:body], folder: row[:folder].to_s)
       count += 1
     end
     redirect_to notes_path, notice: t("app.import_done", count: count)
-  rescue JSON::ParserError, ArgumentError
+  rescue ArgumentError, JSON::ParserError, Zip::Error
     redirect_to notes_path, alert: t("app.import_invalid")
   end
 
@@ -115,16 +109,5 @@ class NotesController < ApplicationController
 
     def note_params
       params.require(:note).permit(:body, :folder)
-    end
-
-    def parse_import(file)
-      raise ArgumentError unless file.respond_to?(:read)
-      raise ArgumentError if file.size > 2.megabytes
-
-      payload = JSON.parse(file.read)
-      notes = payload.is_a?(Array) ? payload : payload["notes"]
-      raise ArgumentError unless notes.is_a?(Array)
-
-      notes
     end
 end

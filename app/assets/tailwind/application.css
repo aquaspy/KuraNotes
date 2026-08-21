@@ -547,6 +547,21 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
 
 .app-shell.is-focus .note-body { padding: 2.4rem 1.35rem 24vh; }
 
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 0.4rem 0.8rem;
+  padding-top: max(0.4rem, env(safe-area-inset-top));
+  background: var(--highlight);
+  color: var(--ink);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .mobile-top, .fab, .fab-form { display: none; }
 
 @media (max-width: 860px) {
