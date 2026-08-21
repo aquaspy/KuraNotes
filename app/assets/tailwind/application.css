@@ -237,6 +237,7 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
+  min-width: 0;
   min-height: 0;
   grid-row: 2;
 }
@@ -553,6 +554,7 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
 .offline-banner {
   grid-column: 1 / -1;
   grid-row: 1;
+  min-width: 0;
   margin: 0;
   padding: 0.4rem 0.8rem;
   background: var(--highlight);
@@ -575,8 +577,11 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
   .app-shell.hide-folders:not(.hide-list),
   .app-shell.hide-list:not(.hide-folders),
   .app-shell.hide-folders.hide-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto minmax(0, 1fr);
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
     height: var(--vvh, 100dvh);
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
@@ -608,13 +613,17 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
     border-bottom: 1px solid var(--line);
     background: var(--sidebar);
     grid-row: 3;
+    min-width: 0;
     min-height: 0;
+    max-width: 100%;
   }
   .col-folders .brand { display: none; }
   .folder-list {
     display: block;
     overflow: hidden;
     flex: none;
+    min-width: 0;
+    max-width: 100%;
     padding: 0;
   }
   .folder-strip {
@@ -622,8 +631,11 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
     flex-wrap: nowrap;
     align-items: center;
     gap: 0.4rem;
+    width: 100%;
+    min-width: 0;
     overflow-x: auto;
     overscroll-behavior-x: contain;
+    touch-action: pan-x;
     padding: 0.5rem 0.75rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
