@@ -85,6 +85,12 @@ class NoteImporterTest < ActiveSupport::TestCase
     assert_includes rows.first[:body], "From backup"
   end
 
+  test "skips the empty string Rails prepends on file fields" do
+    rows = NoteImporter.rows([ "", upload("note.txt", "Titulo\n\nCorpo") ])
+    assert_equal 1, rows.size
+    assert_includes rows.first[:body], "Titulo"
+  end
+
   test "rejects an unrecognized json object" do
     assert_raises(ArgumentError) { NoteImporter.rows(upload("x.json", { "hello" => 1 }.to_json)) }
   end

@@ -60,7 +60,8 @@ class NotesController < ApplicationController
       count += 1
     end
     redirect_to notes_path, notice: t("app.import_done", count: count)
-  rescue ArgumentError, JSON::ParserError, Zip::Error
+  rescue ArgumentError, JSON::ParserError, Zip::Error => e
+    Rails.logger.warn("[import] #{e.class}: #{e.message}")
     redirect_to notes_path, alert: t("app.import_invalid")
   end
 

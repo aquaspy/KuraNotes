@@ -340,6 +340,39 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "Change password"
   end
 
+  test "import form uploads files as multipart" do
+    login
+    get notes_path
+    assert_select "form.import-form[enctype='multipart/form-data']"
+    assert_select "form.import-form input[type=file][multiple]"
+    assert_select "form.import-form input[type=hidden][name='file[]']", count: 0
+  end
+
+  test "import creates notes from several Notesnook text files" do
+    login
+    one = Tempfile.new([ "Brownie", ".txt" ])
+    two = Tempfile.new([ "Pizza", ".txt" ])
+    one.write("Brownie\n\nChocolate")
+    two.write("Pizza\n\nFarinha")
+    one.rewind
+    two.rewind
+
+    assert_difference -> { @user.notes.count }, 2 do
+      post import_notes_path, params: {
+        file: [
+          Rack::Test::UploadedFile.new(one.path, "text/plain"),
+          Rack::Test::UploadedFile.new(two.path, "text/plain")
+        ]
+      }
+    end
+    bodies = @user.notes.pluck(:body)
+    assert bodies.any? { |body| body.include?("Brownie") }
+    assert bodies.any? { |body| body.include?("Pizza") }
+  ensure
+    one&.close!
+    two&.close!
+  end
+
   test "import creates notes from an export file" do
     login
     file = Tempfile.new([ "notes", ".json" ])
@@ -347,7 +380,7 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     file.rewind
 
     assert_difference -> { @user.notes.count }, 1 do
-      post import_notes_path, params: { file: Rack::Test::UploadedFile.new(file.path, "application/json") }
+      post import_notes_path, params: { file: [ "", Rack::Test::UploadedFile.new(file.path, "application/json") ] }
     end
     assert_redirected_to notes_path
     assert_equal "Imported note", @user.notes.last.body

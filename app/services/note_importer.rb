@@ -10,7 +10,7 @@ class NoteImporter
   end
 
   def initialize(uploads)
-    @uploads = Array.wrap(uploads).compact
+    @uploads = Array.wrap(uploads).select { |upload| upload.respond_to?(:read) }
   end
 
   def rows
@@ -215,7 +215,7 @@ class NoteImporter
     end
 
     def try_json(bytes)
-      text = bytes.to_s.lstrip
+      text = bytes.to_s.delete_prefix("\uFEFF").lstrip
       return unless text.start_with?("{", "[")
 
       JSON.parse(text)
