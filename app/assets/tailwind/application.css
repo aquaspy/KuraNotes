@@ -221,6 +221,7 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
 .app-shell {
   display: grid;
   grid-template-columns: 13rem 16rem minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   height: 100dvh;
   overscroll-behavior: none;
 }
@@ -237,9 +238,10 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
   display: flex;
   flex-direction: column;
   min-height: 0;
+  grid-row: 2;
 }
 
-.col-list { background: var(--panel); }
+.col-list { background: var(--panel); grid-row: 2; }
 .brand { padding: 0.9rem 0.9rem 0.4rem; display: grid; gap: 0.55rem; }
 .folder-list { flex: 1; overflow: auto; padding: 0.25rem; display: grid; align-content: start; gap: 0.1rem; }
 
@@ -364,6 +366,7 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  grid-row: 2;
 }
 
 .editor-form {
@@ -548,14 +551,10 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
 .app-shell.is-focus .note-body { padding: 2.4rem 1.35rem 24vh; }
 
 .offline-banner {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 20;
+  grid-column: 1 / -1;
+  grid-row: 1;
   margin: 0;
   padding: 0.4rem 0.8rem;
-  padding-top: max(0.4rem, env(safe-area-inset-top));
   background: var(--highlight);
   color: var(--ink);
   font-size: 0.85rem;
@@ -577,7 +576,7 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
   .app-shell.hide-list:not(.hide-folders),
   .app-shell.hide-folders.hide-list {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto auto auto minmax(0, 1fr);
     height: var(--vvh, 100dvh);
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
@@ -595,6 +594,7 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
     border-bottom: 1px solid var(--line);
     position: relative;
     z-index: 3;
+    grid-row: 2;
   }
   .mobile-top .wordmark { flex: 1; font-size: 1rem; }
   .mobile-top .status {
@@ -607,34 +607,66 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
     border-right: 0;
     border-bottom: 1px solid var(--line);
     background: var(--sidebar);
+    grid-row: 3;
+    min-height: 0;
   }
   .col-folders .brand { display: none; }
   .folder-list {
-    display: flex;
-    overflow-x: auto;
+    display: block;
+    overflow: hidden;
     flex: none;
-    gap: 0.3rem;
-    padding: 0.55rem 0.75rem;
+    padding: 0;
+  }
+  .folder-strip {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.4rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 0.5rem 0.75rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
-  .folder-list::-webkit-scrollbar { display: none; }
+  .folder-strip::-webkit-scrollbar { display: none; }
   .folder-item {
     width: auto;
+    max-width: min(14rem, 72vw);
+    flex: none;
     white-space: nowrap;
-    min-height: 2.5rem;
-    padding: 0.45rem 0.85rem;
+    min-height: 2.15rem;
+    padding: 0.28rem 0.8rem;
     background: var(--paper);
     border: 1px solid var(--line);
-    font-size: 0.92rem;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    gap: 0.25rem;
   }
   .folder-item.is-on { border-color: transparent; }
-  .folder-delete { opacity: 1; }
+  .folder-item.is-on:has(.folder-delete) { padding-right: 0.35rem; }
+  .folder-item-link {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .folder-item em {
+    margin-left: 0.2rem;
+    font-size: 0.72rem;
+  }
+  .folder-item .folder-delete {
+    display: none;
+    width: 1.55rem;
+    height: 1.55rem;
+    flex: 0 0 1.55rem;
+    opacity: 0.85;
+  }
+  .folder-item.is-on .folder-delete { display: grid; }
+  .folder-item .folder-delete svg { width: 0.8rem; height: 0.8rem; }
 
   .col-list {
     border-right: 0;
     min-height: 0;
     background: var(--paper);
+    grid-row: 4;
   }
   .list-head { padding: 0.65rem 0.75rem 0.2rem; }
   .note-list { padding: 0.15rem 0.45rem calc(5.5rem + env(safe-area-inset-bottom)); }
@@ -741,7 +773,7 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
 
   .app-shell:not(.is-editing) .col-editor { display: none; }
   .app-shell.is-editing {
-    grid-template-rows: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
   }
   .app-shell.is-editing .mobile-top,
   .app-shell.is-editing .col-list,

@@ -3,7 +3,7 @@
   inbox = @folder_counts[""].to_i
   named = @folder_counts.except("").sort_by { |name, _| name }
 %>
-<div id="folders_nav" data-controller="confirm">
+<div id="folders_nav" class="folder-strip" data-controller="confirm folders">
   <%= link_to notes_path(note_filters(folder: "all")), class: "folder-item #{"is-on" if @folder.blank? || @folder == "all"}" do %>
     <%= t("js.all") %> <em><%= total %></em>
   <% end %>

@@ -35,6 +35,7 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_response :success
     assert_includes response.body, "KuraNotes"
+    assert_select "#folders_nav.folder-strip"
   end
 
   test "notes stay readable as plaintext on the server" do
