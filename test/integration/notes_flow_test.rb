@@ -45,10 +45,16 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     patch note_path(note), params: { note: { body: "Grocery list\nMilk", folder: "home" } }
     note.reload
     assert_equal "Grocery list", note.title
+    assert_equal "Milk", note.preview
     assert_equal "Grocery list\nMilk", note.body
     assert_equal "home", note.folder
 
     get note_path(note)
+    assert_response :success
+    assert_includes response.body, "Grocery list"
+    assert_includes response.body, "Milk"
+
+    get notes_path
     assert_response :success
     assert_includes response.body, "Grocery list"
     assert_includes response.body, "Milk"

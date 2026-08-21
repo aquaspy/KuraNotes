@@ -89,7 +89,7 @@ class NotesController < ApplicationController
         like = "%#{Note.sanitize_sql_like(@query)}%"
         scope = scope.where("title LIKE ? OR body LIKE ?", like, like)
       end
-      @notes = scope
+      @notes = scope.list_row
       @folder_counts = current_user.notes.group(:folder).count
     end
 

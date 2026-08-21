@@ -1,9 +1,12 @@
 class Note < ApplicationRecord
+  LIST_COLUMNS = [ :id, :title, :preview, :folder, :updated_at ].freeze
+
   belongs_to :user
 
-  before_validation :assign_title
+  before_validation :assign_title_and_preview
 
   scope :blank_drafts, -> { where(title: "", share_token: nil).where("TRIM(body) = ''") }
+  scope :list_row, -> { select(*LIST_COLUMNS) }
 
   def self.open_draft_for(user, folder: "")
     folder = folder.to_s
@@ -15,11 +18,6 @@ class Note < ApplicationRecord
 
   def inbox?
     folder.blank?
-  end
-
-  def preview
-    lines = body.to_s.lines.map(&:strip).reject(&:blank?)
-    (lines[1] || lines[0] || "").truncate(72, omission: "")
   end
 
   def self.reclaim_space
@@ -52,8 +50,9 @@ class Note < ApplicationRecord
   end
 
   private
-    def assign_title
-      line = body.to_s.lines.map(&:strip).find(&:present?)
-      self.title = line.to_s.truncate(80, omission: "")
+    def assign_title_and_preview
+      lines = body.to_s.lines.map(&:strip).reject(&:blank?)
+      self.title = (lines[0] || "").truncate(80, omission: "")
+      self.preview = (lines[1] || lines[0] || "").truncate(72, omission: "")
     end
 end
