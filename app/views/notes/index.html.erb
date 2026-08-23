@@ -59,7 +59,7 @@
         <%= search_field_tag :q, @query, placeholder: t("app.search"), class: "search", enterkeyhint: "search", autocomplete: "off" %>
       <% end %>
     </div>
-    <%= turbo_frame_tag "note-search" do %>
+    <%= turbo_frame_tag "note-search", target: "_top" do %>
       <%= render "list" %>
     <% end %>
   </section>

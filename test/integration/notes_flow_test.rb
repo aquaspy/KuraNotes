@@ -250,6 +250,7 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     get notes_path, params: { q: "Tax" }
     assert_includes response.body, "Taxes"
     assert_not_includes response.body, "Garden"
+    assert_includes response.body, %(target="_top")
   end
 
   test "search frame filters without discarding a draft" do
@@ -264,6 +265,7 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Taxes"
     assert_not_includes response.body, "Garden"
     assert_includes response.body, %(id="note-search")
+    assert_includes response.body, %(target="_top")
     assert_not_includes response.body, "col-editor"
     assert Note.exists?(draft.id)
   end
