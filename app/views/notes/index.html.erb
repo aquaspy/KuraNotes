@@ -54,12 +54,14 @@
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         <span><%= t("app.new_note") %></span>
       <% end %>
-      <%= form_with url: notes_path, method: :get, class: "search-form" do %>
+      <%= form_with url: notes_path, method: :get, class: "search-form", data: { controller: "search", turbo_frame: "note-search", action: "input->search#query submit->search#flush" } do %>
         <%= hidden_field_tag :folder, params[:folder] if params[:folder].present? %>
-        <%= search_field_tag :q, @query, placeholder: t("app.search"), class: "search", enterkeyhint: "search" %>
+        <%= search_field_tag :q, @query, placeholder: t("app.search"), class: "search", enterkeyhint: "search", autocomplete: "off" %>
       <% end %>
     </div>
-    <%= render "list" %>
+    <%= turbo_frame_tag "note-search" do %>
+      <%= render "list" %>
+    <% end %>
   </section>
 
   <section class="col-editor">

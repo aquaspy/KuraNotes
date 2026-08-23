@@ -243,6 +243,31 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     assert_equal 2, @user.notes.count
   end
 
+  test "search filters titles and bodies" do
+    login
+    @user.notes.create!(body: "Garden\nRoses")
+    @user.notes.create!(body: "Taxes\nDue in April")
+    get notes_path, params: { q: "Tax" }
+    assert_includes response.body, "Taxes"
+    assert_not_includes response.body, "Garden"
+  end
+
+  test "search frame filters without discarding a draft" do
+    login
+    post notes_path
+    draft = @user.notes.last
+    @user.notes.create!(body: "Garden\nRoses")
+    @user.notes.create!(body: "Taxes\nDue in April")
+
+    get notes_path, params: { q: "Tax" }, headers: { "Turbo-Frame" => "note-search" }
+    assert_response :success
+    assert_includes response.body, "Taxes"
+    assert_not_includes response.body, "Garden"
+    assert_includes response.body, %(id="note-search")
+    assert_not_includes response.body, "col-editor"
+    assert Note.exists?(draft.id)
+  end
+
   test "leaving an empty note discards the untitled draft" do
     login
     post notes_path

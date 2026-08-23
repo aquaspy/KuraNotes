@@ -3,6 +3,7 @@ class NotesController < ApplicationController
   before_action :load_notes, only: %i[index show update]
 
   def index
+    render :search, layout: false if turbo_frame_request?
   end
 
   def show
@@ -77,9 +78,11 @@ class NotesController < ApplicationController
     end
 
     def load_notes
-      abandoned = current_user.notes.blank_drafts
-      abandoned = abandoned.where.not(id: @note.id) if @note
-      abandoned.delete_all
+      unless turbo_frame_request?
+        abandoned = current_user.notes.blank_drafts
+        abandoned = abandoned.where.not(id: @note.id) if @note
+        abandoned.delete_all
+      end
 
       @query = params[:q].to_s.strip
       @folder = params[:folder]
