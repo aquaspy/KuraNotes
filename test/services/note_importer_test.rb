@@ -85,6 +85,34 @@ class NoteImporterTest < ActiveSupport::TestCase
     assert_includes rows.first[:body], "From backup"
   end
 
+  test "skips zip entries with path traversal" do
+    bytes = zip_bytes(
+      "ok.txt" => "Safe\n\nBody",
+      "../escape.txt" => "Nope"
+    )
+    rows = NoteImporter.rows(upload("sneaky.zip", bytes))
+    assert_equal 1, rows.size
+    assert_includes rows.first[:body], "Safe"
+    refute rows.any? { |row| row[:body].include?("Nope") }
+  end
+
+  test "skips zip entries with an absolute path" do
+    entry = Struct.new(:name, :size).new("/tmp/abs.txt", 12)
+    def entry.directory?; false; end
+
+    assert NoteImporter.new([]).send(:skip_zip_entry?, entry)
+  end
+
+  test "skips zip entries larger than the per-file limit" do
+    bytes = zip_bytes(
+      "ok.txt" => "Tiny\n\nNote",
+      "huge.txt" => "x" * (NoteImporter::MAX_ENTRY + 1)
+    )
+    rows = NoteImporter.rows(upload("big.zip", bytes))
+    assert_equal 1, rows.size
+    assert_includes rows.first[:body], "Tiny"
+  end
+
   test "skips the empty string Rails prepends on file fields" do
     rows = NoteImporter.rows([ "", upload("note.txt", "Titulo\n\nCorpo") ])
     assert_equal 1, rows.size
