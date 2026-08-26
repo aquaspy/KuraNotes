@@ -1,4 +1,5 @@
 require "test_helper"
+require "zip"
 
 class NotesFlowTest < ActionDispatch::IntegrationTest
   setup do
@@ -436,6 +437,28 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     assert_includes @user.notes.last.body, "Chocolate e ovos"
   ensure
     file&.close!
+  end
+
+  test "import creates notes from a zip of Notesnook text files" do
+    login
+    zip = Tempfile.new([ "notesnook", ".zip" ])
+    Zip::OutputStream.open(zip.path) do |zio|
+      zio.put_next_entry("Receitas/Brownie.txt")
+      zio.write("Brownie\n\nChocolate")
+      zio.put_next_entry("Inbox.txt")
+      zio.write("Solta\n\nSem pasta")
+    end
+
+    assert_difference -> { @user.notes.count }, 2 do
+      post import_notes_path, params: { file: Rack::Test::UploadedFile.new(zip.path, "application/zip") }
+    end
+    assert_redirected_to notes_path
+    brownie = @user.notes.find { |note| note.body.include?("Brownie") }
+    inbox = @user.notes.find { |note| note.body.include?("Solta") }
+    assert_equal "Receitas", brownie.folder
+    assert_equal "", inbox.folder
+  ensure
+    zip&.close!
   end
 
   test "import creates notes from a Standard Notes backup" do
