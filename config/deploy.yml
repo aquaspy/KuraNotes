@@ -41,11 +41,8 @@ env:
   secret:
     - RAILS_MASTER_KEY
   clear:
-    # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
-    # When you start using multiple servers, you should split out job processing to a dedicated machine.
-    SOLID_QUEUE_IN_PUMA: true
-
-    # Set number of processes dedicated to Solid Queue (default: 1)
+    # Solid Queue is off (Active Job :async). Set SOLID_QUEUE_IN_PUMA + queue_adapter
+    # :solid_queue in production.rb if durable background jobs are needed again.
     # JOB_CONCURRENCY: 3
 
     # Set number of cores available to the application on each server (default: 1).
