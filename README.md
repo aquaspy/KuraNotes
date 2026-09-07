@@ -133,6 +133,12 @@ docker compose exec web tar -C /rails/storage -cf - . > kuranotes-backup.tar
 
 Sign out **and** wait for the cache wipe. Until then, another person who opens the PWA offline can see cached pages from the previous user.
 
+### Runtime (queue & YJIT)
+
+Solid Queue is **off** here. This app has no durable background jobs, so production Active Job uses the in-process `:async` adapter and Compose does not set `SOLID_QUEUE_IN_PUMA`. That keeps the extra queue processes from sitting in RAM. [KuraChat](https://github.com/aquaspy/KuraChat) still runs Solid Queue for completion jobs.
+
+YJIT stays **on**. Rails 8.1 enables it in production via `config.yjit`; the image also sets `RUBY_YJIT_ENABLE=1`. Leave it on — the CPU win is worth the modest RSS on a personal box.
+
 ---
 
 ## Import / export
