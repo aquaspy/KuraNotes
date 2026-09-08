@@ -27,7 +27,7 @@ It is part of the **Kura** family: the same calm auth, idle lock, PWA offline re
 - Folders, share links (`/s/...`), import & export
 - Import from **Notesnook** text exports and **Standard Notes** unencrypted backups
 - PWA: reopen notes you already viewed while offline; edits wait for the network and save when you are back
-- Long-lived sessions with an idle lock; sign-out wipes the offline cache
+- Long-lived sessions with an optional idle lock (**per device**, not synced in the account DB); sign-out wipes the offline cache
 
 **What you do not get (on purpose):** CalDAV-style sync protocols, E2E encryption, outbound email password reset, or a bundled reverse proxy. You bring your own Caddy or nginx.
 

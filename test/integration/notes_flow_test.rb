@@ -299,9 +299,8 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     assert_not_includes response.body, "Untitled"
   end
 
-  test "auto lock is off by default and can be toggled" do
+  test "auto lock is off by default and is per-device via cookie" do
     login
-    assert_not @user.reload.auto_lock?
 
     get root_path
     assert_includes response.body, "Turn on auto lock"
@@ -312,23 +311,14 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
       assert_response :success
     end
 
-    post auto_lock_path
-    follow_redirect!
-    assert @user.reload.auto_lock?
+    cookies[Locking::COOKIE_NAME] = "1"
+    get root_path
     assert_includes response.body, "Turn off auto lock"
 
     travel 20.minutes do
       get root_path
       assert_redirected_to unlock_path
     end
-  end
-
-  test "auto lock cannot be toggled while locked" do
-    login
-    post lock_path
-    post auto_lock_path
-    assert_redirected_to unlock_path
-    assert_not @user.reload.auto_lock?
   end
 
   test "logged in user can change password" do
