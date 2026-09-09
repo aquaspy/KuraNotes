@@ -19,7 +19,15 @@
         <button type="button" class="icon-btn" data-action="theme#cycle" data-theme-button title="<%= t("auth.theme") %>" aria-label="<%= t("auth.theme") %>">
           <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M8 3a5 5 0 0 0 0 10Z" fill="currentColor"/></svg>
         </button>
-        <%= form.text_field :folder, placeholder: t("app.folder"), class: "folder-input", autocomplete: "off" %>
+        <div class="folder-picker" data-controller="folder-picker">
+          <%= form.text_field :folder, placeholder: t("app.folder"), class: "folder-input", autocomplete: "off", maxlength: Note::FOLDER_MAX_LENGTH, role: "combobox", aria: { autocomplete: "list", expanded: "false", controls: "folder_picker_list" }, data: { folder_picker_target: "input", action: "focus->folder-picker#open input->folder-picker#filter keydown->folder-picker#keydown" } %>
+          <button type="button" class="folder-picker-toggle" data-action="pointerdown->folder-picker#toggle" title="<%= t("app.choose_folder") %>" aria-label="<%= t("app.choose_folder") %>" tabindex="-1">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 6.2 8 9.8l3.5-3.6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div id="folder_picker_list" class="folder-picker-list" data-folder-picker-target="list" hidden role="listbox">
+            <%= render "folder_picker_options" %>
+          </div>
+        </div>
         <span class="bar-spacer desktop-only"></span>
         <span class="status" data-autosave-target="status"></span>
         <button type="button" class="icon-btn" data-action="lock#lock" title="<%= t("app.lock") %>" aria-label="<%= t("app.lock") %>">

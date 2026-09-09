@@ -10,4 +10,8 @@ module ApplicationHelper
   def folder_label(name)
     name.blank? ? t("js.inbox") : name
   end
+
+  def folder_names
+    (@folder_counts || {}).except("").keys.sort
+  end
 end

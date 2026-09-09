@@ -1,0 +1,8 @@
+<button type="button" class="folder-picker-option" role="option" data-folder-picker-target="option" data-action="pointerdown->folder-picker#pick" data-value="" data-label="<%= t("js.inbox") %>">
+  <%= t("js.inbox") %>
+</button>
+<% folder_names.each do |name| %>
+  <button type="button" class="folder-picker-option" role="option" data-folder-picker-target="option" data-action="pointerdown->folder-picker#pick" data-value="<%= name %>" data-label="<%= name %>">
+    <%= name %>
+  </button>
+<% end %>

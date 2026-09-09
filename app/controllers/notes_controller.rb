@@ -45,6 +45,16 @@ class NotesController < ApplicationController
       notice: t("app.folder_cleared", count: count)
   end
 
+  def rename_folder
+    to = Note.rename_folder(user: current_user, from: params[:folder], to: params[:name])
+    filters = { folder: to || params[:folder], q: params[:q] }.compact_blank
+    if to
+      redirect_to notes_path(filters), notice: t("app.folder_renamed")
+    else
+      redirect_to notes_path(filters), alert: t("app.folder_rename_invalid")
+    end
+  end
+
   def export
     payload = current_user.notes.order(:updated_at).map { |note|
       note.slice(:title, :body, :folder, :updated_at)

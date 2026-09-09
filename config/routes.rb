@@ -20,6 +20,7 @@ Rails.application.routes.draw do
       get :export
       post :import
       delete :folder, action: :destroy_folder
+      patch :folder, action: :rename_folder
     end
   end
   get "s/:token", to: "shared_notes#show", as: :shared_note, token: /[A-Za-z0-9_-]+/

@@ -23,6 +23,66 @@ class NoteTest < ActiveSupport::TestCase
     assert_equal "", note.preview
   end
 
+  test "strips and truncates folder names" do
+    note = @user.notes.create!(body: "A", folder: "  home  ")
+    assert_equal "home", note.folder
+
+    note.update!(folder: "x" * 100)
+    assert_equal 80, note.folder.length
+  end
+
+  test "reserved folder names become inbox" do
+    note = @user.notes.create!(body: "A", folder: "Inbox")
+    assert_equal "", note.folder
+
+    note.update!(folder: "all")
+    assert_equal "", note.folder
+  end
+
+  test "rename_folder moves every note in that folder" do
+    keep = @user.notes.create!(body: "Inbox", folder: "")
+    one = @user.notes.create!(body: "One", folder: "work")
+    two = @user.notes.create!(body: "Two", folder: "work")
+    other = @user.notes.create!(body: "Other", folder: "home")
+    stamp = one.updated_at
+
+    assert_equal "office", Note.rename_folder(user: @user, from: "work", to: " office ")
+    assert_equal "", keep.reload.folder
+    assert_equal "office", one.reload.folder
+    assert_equal "office", two.reload.folder
+    assert_equal "home", other.reload.folder
+    assert_equal stamp.to_i, one.updated_at.to_i
+  end
+
+  test "rename_folder merges into an existing folder" do
+    @user.notes.create!(body: "A", folder: "work")
+    @user.notes.create!(body: "B", folder: "home")
+
+    Note.rename_folder(user: @user, from: "work", to: "home")
+    assert_equal [ "home" ], @user.notes.distinct.pluck(:folder)
+  end
+
+  test "rename_folder rejects inbox all and blank names" do
+    @user.notes.create!(body: "A", folder: "work")
+
+    assert_nil Note.rename_folder(user: @user, from: "inbox", to: "home")
+    assert_nil Note.rename_folder(user: @user, from: "", to: "home")
+    assert_nil Note.rename_folder(user: @user, from: "work", to: "")
+    assert_nil Note.rename_folder(user: @user, from: "work", to: "Inbox")
+    assert_nil Note.rename_folder(user: @user, from: "work", to: "all")
+    assert_equal "work", @user.notes.first.folder
+  end
+
+  test "rename_folder does not touch another user's notes" do
+    other = User.create!(email: "lin@example.com", password: "secret-password")
+    mine = @user.notes.create!(body: "Mine", folder: "work")
+    theirs = other.notes.create!(body: "Theirs", folder: "work")
+
+    Note.rename_folder(user: @user, from: "work", to: "home")
+    assert_equal "home", mine.reload.folder
+    assert_equal "work", theirs.reload.folder
+  end
+
   test "list rows omit the body" do
     @user.notes.create!(body: "Secret body\nPreview line")
     row = @user.notes.list_row.first

@@ -130,6 +130,80 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     assert_nil Note.find_by(id: note.id)
   end
 
+  test "renaming a folder moves all of its notes" do
+    login
+    keep = @user.notes.create!(body: "Stay", folder: "")
+    one = @user.notes.create!(body: "One", folder: "work")
+    two = @user.notes.create!(body: "Two", folder: "work")
+
+    patch folder_notes_path, params: { folder: "work", name: "home" }
+    assert_redirected_to notes_path(folder: "home")
+    follow_redirect!
+    assert_includes response.body, I18n.t("app.folder_renamed")
+    assert_equal "", keep.reload.folder
+    assert_equal "home", one.reload.folder
+    assert_equal "home", two.reload.folder
+  end
+
+  test "renaming a folder onto another name merges them" do
+    login
+    @user.notes.create!(body: "Work", folder: "work")
+    @user.notes.create!(body: "Home", folder: "home")
+
+    patch folder_notes_path, params: { folder: "work", name: "home" }
+    assert_redirected_to notes_path(folder: "home")
+    assert_equal [ "home" ], @user.notes.distinct.pluck(:folder)
+  end
+
+  test "renaming inbox or using a reserved name is rejected" do
+    login
+    note = @user.notes.create!(body: "Work", folder: "work")
+
+    patch folder_notes_path, params: { folder: "inbox", name: "home" }
+    follow_redirect!
+    assert_select ".flash-alert", text: I18n.t("app.folder_rename_invalid")
+    assert_equal "work", note.reload.folder
+
+    patch folder_notes_path, params: { folder: "work", name: "all" }
+    follow_redirect!
+    assert_select ".flash-alert", text: I18n.t("app.folder_rename_invalid")
+    assert_equal "work", note.reload.folder
+
+    patch folder_notes_path, params: { folder: "work", name: "  " }
+    follow_redirect!
+    assert_select ".flash-alert", text: I18n.t("app.folder_rename_invalid")
+    assert_equal "work", note.reload.folder
+  end
+
+  test "folder chips offer rename only on named folders" do
+    login
+    @user.notes.create!(body: "Work", folder: "work")
+    get notes_path
+    assert_select ".folder-item .folder-rename", count: 1
+    assert_select ".folder-item .folder-rename[data-from=?]", "work"
+    assert_select ".folder-item .folder-delete", count: 1
+  end
+
+  test "editor lists existing folders for the picker" do
+    login
+    note = @user.notes.create!(body: "Work", folder: "work")
+    @user.notes.create!(body: "Home", folder: "home")
+    get note_path(note)
+    assert_select ".folder-picker"
+    assert_select "#folder_picker_list [data-value=?]", ""
+    assert_select "#folder_picker_list [data-value=?]", "work"
+    assert_select "#folder_picker_list [data-value=?]", "home"
+  end
+
+  test "changing one note folder does not rename the rest" do
+    login
+    keep = @user.notes.create!(body: "Stay", folder: "work")
+    note = @user.notes.create!(body: "Move me", folder: "work")
+    patch note_path(note), params: { note: { folder: "home" } }
+    assert_equal "home", note.reload.folder
+    assert_equal "work", keep.reload.folder
+  end
+
   test "deleting a folder removes its notes but keeps inbox" do
     login
     keep = @user.notes.create!(body: "Stay", folder: "")
@@ -303,8 +377,8 @@ class NotesFlowTest < ActionDispatch::IntegrationTest
     login
 
     get root_path
-    assert_includes response.body, "Turn on auto lock"
-    assert_not_includes response.body, "Turn off auto lock"
+    assert_select "[data-auto-lock-label]", text: "Turn on auto lock"
+    assert_select "[data-lock-enabled-value=?]", "false"
 
     travel 20.minutes do
       get root_path

@@ -271,8 +271,9 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
   text-decoration: none;
 }
 .folder-item em { margin-left: auto; color: var(--muted); font-style: normal; font-size: 0.75rem; }
-.folder-delete { opacity: 0.55; flex: 0 0 auto; }
-.folder-item:hover .folder-delete, .folder-delete:focus-visible { opacity: 1; }
+.folder-delete, .folder-rename { opacity: 0.55; flex: 0 0 auto; }
+.folder-item:hover .folder-delete, .folder-delete:focus-visible,
+.folder-item:hover .folder-rename, .folder-rename:focus-visible { opacity: 1; }
 .folder-item.is-on, .note-item.is-on { background: var(--highlight); color: var(--accent-2); }
 .sidebar-foot { padding: 0.7rem 0.9rem 0.9rem; display: grid; gap: 0.35rem; }
 
@@ -443,6 +444,7 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
   font-size: 1rem;
   line-height: 1.4;
 }
+.confirm-dialog .rename-input { margin: 0 0 1rem; }
 .confirm-actions {
   display: flex;
   justify-content: flex-end;
@@ -527,17 +529,70 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
 .editor-bar .status { margin-inline: 0.4rem 0.75rem; }
 .editor-bar .back { display: none; }
 
-.col-editor input.folder-input {
+.folder-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
   max-width: 11rem;
+  flex: 1 1 auto;
+}
+.col-editor .folder-picker .folder-input {
+  max-width: none;
+  min-width: 0;
+  flex: 1;
   background: transparent;
   border-color: transparent;
   padding: 0.35rem 0.45rem;
   color: var(--muted);
 }
+.col-editor .folder-picker .folder-input:hover,
+.col-editor .folder-picker .folder-input:focus { border-color: var(--line); color: var(--ink); }
+.folder-picker-toggle {
+  flex: none;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.folder-picker-toggle svg { width: 0.9rem; height: 0.9rem; display: block; }
+.folder-picker-toggle:hover { color: var(--ink); }
+.folder-picker-list {
+  position: fixed;
+  z-index: 12;
+  max-height: min(16rem, 50dvh);
+  overflow: auto;
+  padding: 0.3rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  box-shadow: var(--shadow);
+  overscroll-behavior: contain;
+}
+.folder-picker-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-radius: 0.45rem;
+  padding: 0.45rem 0.6rem;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.folder-picker-option:hover,
+.folder-picker-option.is-active { background: var(--highlight); color: var(--accent-2); }
+.folder-picker-option[hidden] { display: none; }
 
-.col-editor input.folder-input:hover,
-.col-editor input.folder-input:focus { border-color: var(--line); color: var(--ink); }
-
+.col-editor:has(.empty-editor:not([hidden])) .editor-bar .folder-picker,
 .col-editor:has(.empty-editor:not([hidden])) .editor-bar .folder-input,
 .col-editor:has(.empty-editor:not([hidden])) .editor-bar .danger { visibility: hidden; }
 
@@ -666,8 +721,9 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
     font-size: 0.88rem;
     gap: 0.25rem;
   }
-  .folder-item.is-on { border-color: transparent; }
-  .folder-item.is-on:has(.folder-delete) { padding-right: 0.35rem; }
+  .folder-item.is-on { border-color: transparent; max-width: min(18rem, 90vw); }
+  .folder-item.is-on:has(.folder-delete),
+  .folder-item.is-on:has(.folder-rename) { padding-right: 0.35rem; }
   .folder-item-link {
     min-width: 0;
     overflow: hidden;
@@ -676,15 +732,18 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
     margin-left: 0.2rem;
     font-size: 0.72rem;
   }
-  .folder-item .folder-delete {
+  .folder-item .folder-delete,
+  .folder-item .folder-rename {
     display: none;
     width: 1.55rem;
     height: 1.55rem;
     flex: 0 0 1.55rem;
     opacity: 0.85;
   }
-  .folder-item.is-on .folder-delete { display: grid; }
-  .folder-item .folder-delete svg { width: 0.8rem; height: 0.8rem; }
+  .folder-item.is-on .folder-delete,
+  .folder-item.is-on .folder-rename { display: grid; }
+  .folder-item .folder-delete svg,
+  .folder-item .folder-rename svg { width: 0.8rem; height: 0.8rem; }
 
   .col-list {
     border-right: 0;
@@ -720,10 +779,14 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
     background: var(--paper);
   }
   .editor-bar .back { display: grid; }
-  .col-editor input.folder-input {
+  .folder-picker {
+    max-width: none;
+    min-width: 6.5rem;
+  }
+  .col-editor .folder-picker .folder-input {
     max-width: none;
     flex: 1 1 auto;
-    min-width: 6.5rem;
+    min-width: 0;
     font-size: 1rem;
     min-height: 2.6rem;
     background: var(--input);
@@ -732,6 +795,15 @@ input:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transp
     pointer-events: auto;
     touch-action: manipulation;
     -webkit-user-select: text;
+  }
+  .folder-picker-toggle {
+    width: 2.2rem;
+    height: 2.2rem;
+  }
+  .folder-picker-option {
+    min-height: 2.75rem;
+    font-size: 1rem;
+    padding: 0.65rem 0.75rem;
   }
   .editor-bar .danger { padding: 0.45rem 0.55rem; font-size: 0.9rem; }
 
