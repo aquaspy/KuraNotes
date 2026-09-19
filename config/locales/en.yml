@@ -8,6 +8,23 @@ en:
     password: "Change password · KuraNotes"
     lock: "Unlock · KuraNotes"
     shared: "%{title} · KuraNotes"
+    tokens: "API tokens · KuraNotes"
+  api:
+    invalid_folder: "Pick a folder to clear."
+  tokens:
+    title: "API tokens"
+    lede: "Tokens let AI agents and other apps manage your notes through the API. A token has full access to your notes and folders, and keeps working while the app is locked. Treat it like a password."
+    name_label: "Name"
+    name_placeholder: "e.g. Hermes Agent"
+    create: "Generate token"
+    copy_now: "Copy this token now. It will not be shown again."
+    existing: "Active tokens"
+    empty: "No tokens yet."
+    last_used: "Last used"
+    never_used: "Never"
+    revoke: "Revoke"
+    revoke_confirm: "Revoke this token? Connected apps will stop working."
+    revoked: "Token revoked."
   auth:
     sign_in: "Sign in"
     sign_in_lede: "Your notes live on this server. Sign in to open them."
@@ -85,3 +102,21 @@ en:
     theme_light: "Theme: light"
     theme_dark: "Theme: dark"
     theme_switch: "click to switch"
+  time:
+    formats:
+      short: "%b %-d, %H:%M"
+  datetime:
+    formats:
+      short: "%b %-d, %H:%M"
+  activerecord:
+    attributes:
+      api_token:
+        name: "Name"
+    errors:
+      models:
+        api_token:
+          attributes:
+            name:
+              blank: "can't be blank"
+            base:
+              too_many: "Ten tokens is enough. Revoke one first."

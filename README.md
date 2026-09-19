@@ -25,6 +25,7 @@ It is part of the **Kura** family: the same calm auth, idle lock, PWA offline re
 
 - Multi-user accounts on one instance (family, friends, just you)
 - Folders, share links (`/s/...`), import & export
+- API tokens + JSON API for AI agents (see API.md)
 - Import from **Notesnook** text exports and **Standard Notes** unencrypted backups
 - PWA: reopen notes you already viewed while offline; edits wait for the network and save when you are back
 - Long-lived sessions with an optional idle lock (**per device**, not synced in the account DB); sign-out wipes the offline cache
@@ -152,6 +153,12 @@ YJIT stays **on**. Rails 8.1 enables it in production via `config.yjit`; the ima
 - Standard Notes **unencrypted** backup (`Standard Notes Backup and Import File.txt`, or the zip it came in). Super notes become plaintext. Tags become folders.
 
 Encrypted Standard Notes backups are skipped. Import **adds** notes; it does not replace existing ones. Cap is 500 notes per import.
+
+---
+
+## AI agents (API)
+
+KuraNotes is ready for the agentic era: mint a token under **More → API tokens**, hand it to OpenClaw, Hermes Agent, or any HTTP client, and it can read, write, and file notes into folders — even while the app is locked. See [API.md](API.md) for endpoints, curl examples, and a setup snippet.
 
 ---
 

@@ -13,6 +13,16 @@ Rails.application.routes.draw do
   post "unlock", to: "locks#create"
   post "lock", to: "locks#lock", as: :lock
   resource :password, only: %i[edit update]
+  resources :api_tokens, only: %i[index create destroy]
+
+  namespace :api do
+    namespace :v1 do
+      resources :notes, only: %i[index show create update destroy]
+      get "folders", to: "folders#index", as: :folders
+      patch "folders", to: "folders#update"
+      delete "folders", to: "folders#destroy"
+    end
+  end
 
   resources :notes, only: %i[index show create update destroy] do
     resource :share, only: %i[create update destroy]

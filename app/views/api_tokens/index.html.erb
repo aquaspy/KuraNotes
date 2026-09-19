@@ -1,0 +1,49 @@
+<% content_for :title, t("titles.tokens") %>
+<% content_for :body_class, "auth-body" %>
+
+<% if notice %><p class="flash flash-notice" role="status"><%= notice %></p><% end %>
+<% if alert %><p class="flash flash-alert" role="alert"><%= alert %></p><% end %>
+
+<section class="auth-card">
+  <%= render "shared/wordmark" %>
+  <h1><%= t("tokens.title") %></h1>
+  <p class="lede"><%= t("tokens.lede") %></p>
+
+  <% if @raw_token %>
+    <div class="token-new">
+      <p class="token-warning"><%= t("tokens.copy_now") %></p>
+      <code class="token-value"><%= @raw_token %></code>
+    </div>
+  <% end %>
+
+  <%= form_with url: api_tokens_path, class: "auth-form" do %>
+    <label><%= t("tokens.name_label") %>
+      <%= text_field_tag :name, nil, required: true, maxlength: 80, autocomplete: "off", placeholder: t("tokens.name_placeholder") %>
+    </label>
+    <label><%= t("auth.current_password") %>
+      <%= password_field_tag :current_password, nil, autocomplete: "current-password", required: true %>
+    </label>
+    <%= submit_tag t("tokens.create"), class: "btn-primary" %>
+  <% end %>
+
+  <h2 class="tokens-heading"><%= t("tokens.existing") %></h2>
+  <% if @api_tokens.any? %>
+    <ul class="token-list">
+      <% @api_tokens.each do |token| %>
+        <li class="token-row">
+          <div class="token-meta">
+            <strong><%= token.name %></strong>
+            <span class="field-hint"><%= token.prefix %>… · <%= t("tokens.last_used") %>: <%= token.last_used_at ? l(token.last_used_at, format: :short) : t("tokens.never_used") %></span>
+          </div>
+          <%= button_to t("tokens.revoke"), api_token_path(token), method: :delete,
+            class: "btn-dialog danger", form: { data: { turbo_confirm: t("tokens.revoke_confirm") } } %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="lede"><%= t("tokens.empty") %></p>
+  <% end %>
+
+  <p class="auth-foot"><%= link_to t("app.cancel"), root_path %></p>
+  <%= render "shared/theme_switch" %>
+</section>

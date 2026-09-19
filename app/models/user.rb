@@ -1,6 +1,7 @@
 class User < ApplicationRecord
   has_secure_password
   has_many :notes, dependent: :destroy
+  has_many :api_tokens, dependent: :destroy
 
   normalizes :email, with: -> { it.strip.downcase }
 

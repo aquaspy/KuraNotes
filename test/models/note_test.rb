@@ -89,4 +89,11 @@ class NoteTest < ActiveSupport::TestCase
     assert_equal "Preview line", row.preview
     refute row.has_attribute?(:body)
   end
+
+  test "reclaim_space never breaks the request" do
+    Note.reclaim_space
+    Note.transaction do
+      assert_nil Note.reclaim_space
+    end
+  end
 end

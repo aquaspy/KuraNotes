@@ -45,8 +45,21 @@ class Note < ApplicationRecord
 
   def self.reclaim_space
     connection.execute("VACUUM")
-  rescue ActiveRecord::StatementInvalid
+  rescue ActiveRecord::StatementInvalid, SQLite3::Exception
     nil
+  end
+
+  def as_api
+    {
+      "id" => id,
+      "title" => title,
+      "body" => body,
+      "preview" => preview,
+      "folder" => folder,
+      "shared" => shared?,
+      "created_at" => created_at&.iso8601,
+      "updated_at" => updated_at&.iso8601
+    }
   end
 
   def shared?
