@@ -37,3 +37,7 @@
 
 /app/assets/builds/*
 !/app/assets/builds/.keep
+
+# Go build outputs.
+/kuranotes
+/web/static/css/app.css

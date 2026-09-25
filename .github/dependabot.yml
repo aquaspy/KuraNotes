@@ -1,7 +1,7 @@
 version: 2
 # Security updates only: version-update PRs disabled (limit 0 does not affect security updates).
 updates:
-- package-ecosystem: bundler
+- package-ecosystem: gomod
   directory: "/"
   schedule:
     interval: weekly
