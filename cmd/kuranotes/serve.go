@@ -24,12 +24,12 @@ func runServe(cfg config.Config) error {
 
 	// Boot sweep: dead sessions are collected. The ticker repeats it
 	// every 5 minutes.
-	_ = st.DeleteStaleSessions(30 * 24 * time.Hour)
+	_ = st.DeleteStaleSessions(store.SessionMaxAge)
 	go func() {
 		t := time.NewTicker(5 * time.Minute)
 		defer t.Stop()
 		for range t.C {
-			_ = st.DeleteStaleSessions(30 * 24 * time.Hour)
+			_ = st.DeleteStaleSessions(store.SessionMaxAge)
 		}
 	}()
 

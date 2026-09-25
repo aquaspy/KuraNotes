@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/aquasp/kuranotes/internal/config"
 	"github.com/aquasp/kuranotes/internal/store"
@@ -185,6 +186,40 @@ func TestAuthFlow(t *testing.T) {
 	if code != http.StatusSeeOther || h.Get("Location") != "/login" {
 		t.Fatalf("closed signup: %d -> %q", code, h.Get("Location"))
 	}
+}
+
+func TestSessionCookiePersistent(t *testing.T) {
+	f := newFlow(t, nil)
+	f.seedUser("persist@example.com", "password1")
+	code, _, h := f.post("/login", url.Values{"email": {"persist@example.com"}, "password": {"password1"}}, nil)
+	if code != http.StatusSeeOther {
+		t.Fatalf("login = %d", code)
+	}
+	c := sessionCookie(t, h)
+	if c.MaxAge < int((29 * 24 * time.Hour).Seconds()) {
+		t.Fatalf("login cookie MaxAge = %d, want ~30 days", c.MaxAge)
+	}
+	if time.Until(c.Expires) < 29*24*time.Hour {
+		t.Fatalf("login cookie Expires = %v, want ~30 days out", c.Expires)
+	}
+	// Authenticated requests renew the cookie (sliding window), so the
+	// login survives browser restarts until 30 days idle.
+	_, _, h = f.get("/", nil)
+	c = sessionCookie(t, h)
+	if c.MaxAge <= 0 || time.Until(c.Expires) < 29*24*time.Hour {
+		t.Fatalf("renewed cookie = MaxAge %d Expires %v", c.MaxAge, c.Expires)
+	}
+}
+
+func sessionCookie(t *testing.T, h http.Header) *http.Cookie {
+	t.Helper()
+	for _, c := range (&http.Response{Header: h}).Cookies() {
+		if c.Name == SessionCookie {
+			return c
+		}
+	}
+	t.Fatalf("no %q cookie in %v", SessionCookie, h.Values("Set-Cookie"))
+	return nil
 }
 
 func TestLockFlow(t *testing.T) {
